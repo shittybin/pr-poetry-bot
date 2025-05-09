@@ -1,7 +1,7 @@
 # 🤖 PR Poetry Bot
 
-This GitHub Action comments a poem (haiku/limerick) about your pull request, powered by ChatGPT.
-
+This GitHub Action comments a poem (haiku/limerick) about your pull request, powered by LLM Model and GPT. <br>
+Interested ones can forked and collab!
 ## Features
 - Auto-generates poetry for your PRs
 - LLM-powered
@@ -12,3 +12,4 @@ This GitHub Action comments a poem (haiku/limerick) about your pull request, pow
 1. Fork this repo
 2. Add your OpenAI key to GitHub Secrets as `OPENAI_API_KEY`
 3. Open a PR and watch the magic! ✨
+

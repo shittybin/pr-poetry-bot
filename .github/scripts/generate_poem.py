@@ -1,50 +1,34 @@
 import os
-import json
-import requests
-import openai
-from github import Github
+import time
 from openai import OpenAI
-import os
+from openai.types.chat import ChatCompletion
 
-# GitHub setup
-token = os.getenv("GITHUB_TOKEN")
-g = Github(token)
-repo_name = os.getenv("GITHUB_REPOSITORY")
-event_path = os.getenv("GITHUB_EVENT_PATH")
-
-# Load PR event data
-with open(event_path) as f:
-    event = json.load(f)
-pr_number = event["number"]
-repo = g.get_repo(repo_name)
-pr = repo.get_pull(pr_number)
-
-# Collect PR title and diff
-title = pr.title
-diff_url = pr.diff_url
-diff = requests.get(diff_url).text
-short_diff = diff[:500]  # Limit size
-
-# Prompt the LLM (OpenAI API Key should be set in the environment)
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-prompt = f"""Write a short haiku about the following GitHub pull request:
-
-Title: {title}
-
-Code Diff: {short_diff}
-"""
-
+# Initialize client with your API key (set as env var)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": prompt}],
-    max_tokens=100
-)
-poem = response.choices[0].message.content.strip()
+# Retry logic: exponential backoff in case of rate limits
+def generate_poem():
+    for attempt in range(5):  # max 5 retries
+        try:
+            response: ChatCompletion = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a creative poet."},
+                    {"role": "user", "content": "Write a short poem about GitHub pull requests."}
+                ],
+                temperature=0.7
+            )
+            print("🎉 Poem Generated:\n")
+            print(response.choices[0].message.content)
+            return
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "quota" in str(e).lower():
+                wait = 2 ** attempt
+                print(f"⏳ Rate limit hit or quota error: retrying in {wait} seconds...")
+                time.sleep(wait)
+            else:
+                print(f"❌ Unexpected error: {e}")
+                break
 
-poem = response.choices[0].text.strip()  # Remove extra whitespace
-
-# Comment the poem on the PR
-pr.create_issue_comment(f"📝 **Your PR Poetry:**\n\n{poem}")
+if __name__ == "__main__":
+    generate_poem()

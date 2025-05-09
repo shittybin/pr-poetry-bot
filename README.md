@@ -1,7 +1,7 @@
 # 🤖 PR Poetry Bot
 
-This GitHub Action comments a poem (haiku/limerick) about your pull request, powered by ChatGPT.
-
+This GitHub Action comments a poem (haiku/limerick) about your pull request, powered by ChatGPT. <br>
+Interested ones can forked and collab!
 ## Features
 - Auto-generates poetry for your PRs
 - LLM-powered

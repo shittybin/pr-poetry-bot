@@ -3,6 +3,8 @@ import json
 import requests
 import openai
 from github import Github
+from openai import OpenAI
+import os
 
 # GitHub setup
 token = os.getenv("GITHUB_TOKEN")
@@ -33,15 +35,14 @@ Title: {title}
 Code Diff: {short_diff}
 """
 
-# Use the new API method
-# new ChatCompletion API with a supported model
-response = openai.ChatCompletion.create(
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": prompt}],
     max_tokens=100
 )
 poem = response.choices[0].message.content.strip()
-
 
 poem = response.choices[0].text.strip()  # Remove extra whitespace
 
